@@ -19,8 +19,24 @@
 
 (provide run-ground-vm)
 
+(require/typed profile
+	       [profile-thunk ((-> Void) #:custom-key (Pairof
+						       (Continuation-Mark-Keyof Any)
+						       (-> (Listof Any) (Listof Any)))
+			       -> Void)])
+
 (: run-ground-vm : process-spec -> Void)
 (define (run-ground-vm boot)
+  (profile-thunk (lambda () (run-ground-vm* boot))
+		 #:custom-key (cons marketplace-continuation-mark-key
+				    (lambda: ([vs : (Listof Any)])
+				      (let: loop : (Listof Any) ((vs : (Listof Any) vs))
+					(if (null? vs)
+					    '()
+					    (cons vs (loop (cdr vs)))))))))
+
+(: run-ground-vm* : process-spec -> Void)
+(define (run-ground-vm* boot)
   (let loop ((state (make-vm boot)))
     (match (run-vm state)
       [(transition state actions)

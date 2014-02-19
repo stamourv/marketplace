@@ -2,10 +2,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (spawn-vm
+ #:debug-name 'listener-vm
  (at-meta-level
   (observe-publishers (tcp-channel ? (tcp-listener 5999) ?)
     (match-conversation (tcp-channel them us _)
-      (on-presence (spawn (chat-session them us)))))))
+      (on-presence (name-process `(,them --> ,us)
+		     (spawn (chat-session them us))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (chat-session them us)
